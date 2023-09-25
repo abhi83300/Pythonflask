@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Real-time CPU Usage line Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <h1>Real-time CPU Usage line Graph</h1>
+    <canvas id="cpu-chart" width="200" height="100"></canvas>
+
+    <h1>Real-time ram Usage line Graph</h1>
+    <canvas id="ram-chart" width="200" height="100"></canvas>
+
+    <script>
+
+        let cpuData = [];
+     
+        const maxDataPoints = 30; // Number of data points to display
+
+
+
+        var ctx = document.getElementById('cpu-chart').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['CPU Usage'],
+                datasets: [{
+                    data: [], // Initial value of 0
+                    label: 'Core 1 ',
+                    fill: false,
+                    borderColor: 'rgb(25, 12, 152)',
+                    tension: 0.1
+                },{
+                    data: [], // Initial value of 0
+                    label: 'Core 2',
+                    fill: false,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                },{
+                    data: [], // Initial value of 0
+                    label: 'Core 3',
+                    fill: false,
+                    borderColor: 'rgb(55, 92, 92)',
+                    tension: 0.1
+                },{
+                    data: [], // Initial value of 0
+                    label: 'Core 4',
+                    fill: false,
+                    borderColor: 'rgb(123, 2, 12)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                
+            responsive: true,
+            scales: {
+                x: {
+                    // Use category (non-time) X-axis
+                    position: 'bottom',
+                },
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                }
+            }
+        }
+            }
+        );
+
+        async function updateChart() {
+            // Fetch CPU and RAM usage data (you can replace this with actual data retrieval)
+            var cpuUsage=[0,0,0,0];
+            await fetch('/cpu_usage').then(
+                response=>response.json()
+            ).then(data=>{
+                cpuUsage[0] = data.cpu_usage[0]
+                cpuUsage[1] = data.cpu_usage[1]
+                cpuUsage[2] = data.cpu_usage[2]
+                cpuUsage[3] = data.cpu_usage[3]
+                
+            })
+            
+
+            // Add new data points to the arrays
+            cpuData.push(cpuUsage[0]);
+
+            // Remove old data points if we exceed the maximum number of data points
+            if (chart.data.datasets[0].data.length > maxDataPoints) {
+                chart.data.datasets[0].data.shift();
+            }
+
+            // Update the chart labels
+            chart.data.labels = [...Array(cpuData.length).keys()];
+
+            chart.data.datasets[0].data.push(cpuUsage[0])
+            chart.data.datasets[1].data.push(cpuUsage[1])
+            chart.data.datasets[2].data.push(cpuUsage[2])
+            chart.data.datasets[3].data.push(cpuUsage[3])
+
+
+            // Update the chart
+            chart.update();
+        }
+
+
+        setInterval(updateChart, 1000); // Update every 1 second
+    let ramData = [];
+ 
+
+
+
+    var cty = document.getElementById('ram-chart').getContext('2d');
+    var chart1 = new Chart(cty, {
+        type: 'line',
+        data: {
+            labels: ['ram Usage'],
+            datasets: [{
+                data: [], // Initial value of 0
+                label: 'ram usage ',
+                fill: false,
+                borderColor: 'rgb(25, 12, 152)',
+                tension: 0.1
+            }
+            ]
+        },
+        options: {
+            
+        responsive: true,
+        scales: {
+            x: {
+                // Use category (non-time) X-axis
+                position: 'bottom',
+            },
+            y: {
+                beginAtZero: true,
+                max: 100,
+            }
+        }
+    }
+        }
+    );
+
+    async function updateChartram() {
+        // Fetch CPU and RAM usage data (you can replace this with actual data retrieval)
+        var ramUsage=[0];
+        await fetch('/ram_usage').then(
+            response=>response.json()
+        ).then(data=>{
+            ramUsage = data.ram_usage
+           
+        })
+        
+
+        // Add new data points to the arrays
+        
+        ramData.push(ramUsage);
+
+        // Remove old data points if we exceed the maximum number of data points
+        if (chart1.data.datasets[0].data.length > maxDataPoints) {
+            chart1.data.datasets[0].data.shift();
+        }
+
+        // Update the chart labels
+        chart1.data.labels = [...Array(ramData.length).keys()];
+        console.log(ramUsage)
+        chart1.data.datasets[0].data.push(ramUsage)
+       
+
+
+        // Update the chart
+        chart1.update();
+    }
+
+
+    setInterval(updateChartram, 1000); // Update every 1 second
+</script>
+</body>
+
+</html>
