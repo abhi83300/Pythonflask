@@ -5,15 +5,30 @@
     <meta charset="UTF-8">
     <title>Real-time CPU Usage line Graph</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            height: 100vh;
+        }
+        .chart-container {
+            flex: 1;
+            margin: 0 10px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Real-time CPU Usage line Graph</h1>
-    <canvas id="cpu-chart" width="200" height="100"></canvas>
-
-    <h1>Real-time ram Usage line Graph</h1>
-    <canvas id="ram-chart" width="200" height="100"></canvas>
-
+    <div class="chart-container">
+        <h1>Real-time CPU Usage line Graph</h1>
+        <canvas id="cpu-chart" width="400" height="200"></canvas>
+    </div>
+    <div class="chart-container">
+        <h1>Real-time RAM Usage line Graph</h1>
+        <canvas id="ram-chart" width="400" height="200"></canvas>
+    </div>
     <script>
 
         let cpuData = [];
@@ -54,22 +69,30 @@
                 }]
             },
             options: {
-                
-            responsive: true,
-            scales: {
-                x: {
-                    // Use category (non-time) X-axis
-                    position: 'bottom',
-                },
-                y: {
-                    beginAtZero: true,
-                    max: 100,
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'CPU Usage'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                    }
                 }
             }
         }
-            }
         );
+        function updateChartLabels(chart) {
+            const currentTime = new Date().toLocaleTimeString();
+            chart.data.labels.push(currentTime);
 
+            if (chart.data.labels.length > maxDataPoints) {
+                chart.data.labels.shift();
+            }
+        }
         async function updateChart() {
             // Fetch CPU and RAM usage data (you can replace this with actual data retrieval)
             var cpuUsage=[0,0,0,0];
@@ -93,7 +116,8 @@
             }
 
             // Update the chart labels
-            chart.data.labels = [...Array(cpuData.length).keys()];
+            updateChartLabels(chart);
+           // chart.data.labels = [...Array(cpuData.length).keys()];
 
             chart.data.datasets[0].data.push(cpuUsage[0])
             chart.data.datasets[1].data.push(cpuUsage[1])
@@ -127,22 +151,30 @@
             ]
         },
         options: {
-            
-        responsive: true,
-        scales: {
-            x: {
-                // Use category (non-time) X-axis
-                position: 'bottom',
-            },
-            y: {
-                beginAtZero: true,
-                max: 100,
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'RAM Usage'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                    }
+                }
             }
         }
-    }
-        }
     );
+    function updateChart1Labels(chart1) {
+            const currentTime = new Date().toLocaleTimeString();
+            chart1.data.labels.push(currentTime);
 
+            if (chart1.data.labels.length > maxDataPoints) {
+                chart1.data.labels.shift();
+            }
+        }
     async function updateChartram() {
         // Fetch CPU and RAM usage data (you can replace this with actual data retrieval)
         var ramUsage=[0];
@@ -164,7 +196,8 @@
         }
 
         // Update the chart labels
-        chart1.data.labels = [...Array(ramData.length).keys()];
+        updateChartLabels(chart1);
+        //chart1.data.labels = [...Array(ramData.length).keys()];
         console.log(ramUsage)
         chart1.data.datasets[0].data.push(ramUsage)
        
