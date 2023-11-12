@@ -1,214 +1,374 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Real-time CPU Usage line Graph</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            height: 100vh;
-        }
-        .chart-container {
-            flex: 1;
-            margin: 0 10px;
-        }
-    </style>
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=2.0">
+<title>CPU Usage</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 
-<body>
-    <div class="chart-container">
-        <h1>Real-time CPU Usage line Graph</h1>
-        <canvas id="cpu-chart" width="400" height="200"></canvas>
-    </div>
-    <div class="chart-container">
-        <h1>Real-time RAM Usage line Graph</h1>
-        <canvas id="ram-chart" width="400" height="200"></canvas>
-    </div>
-    <script>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+  }
+ .nav-link {
+    margin-right: 20px;
+    font-size: 14px;
+    color: gray;
+    text-decoration: none;
+  }
 
-        let cpuData = [];
-     
-        const maxDataPoints = 30; // Number of data points to display
+  .nav-link a {
+    color: white;
+    text-decoration: none;
+  }
 
+  .main-content {
+    display: flex;
+    flex: 1;
+  }
 
+  .left-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-        var ctx = document.getElementById('cpu-chart').getContext('2d');
-        var chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['CPU Usage'],
-                datasets: [{
-                    data: [], // Initial value of 0
-                    label: 'Core 1 ',
-                    fill: false,
-                    borderColor: 'rgb(25, 12, 152)',
-                    tension: 0.1
-                },{
-                    data: [], // Initial value of 0
-                    label: 'Core 2',
-                    fill: false,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                },{
-                    data: [], // Initial value of 0
-                    label: 'Core 3',
-                    fill: false,
-                    borderColor: 'rgb(55, 92, 92)',
-                    tension: 0.1
-                },{
-                    data: [], // Initial value of 0
-                    label: 'Core 4',
-                    fill: false,
-                    borderColor: 'rgb(123, 2, 12)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'CPU Usage'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                    }
-                }
-            }
-        }
-        );
-        function updateChartLabels(chart) {
-            const currentTime = new Date().toLocaleTimeString();
-            chart.data.labels.push(currentTime);
+  
 
-            if (chart.data.labels.length > maxDataPoints) {
-                chart.data.labels.shift();
-            }
-        }
-        async function updateChart() {
-            // Fetch CPU and RAM usage data (you can replace this with actual data retrieval)
-            var cpuUsage=[0,0,0,0];
-            await fetch('/cpu_usage').then(
-                response=>response.json()
-            ).then(data=>{
-                cpuUsage[0] = data.cpu_usage[0]
-                cpuUsage[1] = data.cpu_usage[1]
-                cpuUsage[2] = data.cpu_usage[2]
-                cpuUsage[3] = data.cpu_usage[3]
-                
-            })
-            
+  .right-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-            // Add new data points to the arrays
-            cpuData.push(cpuUsage[0]);
+  
 
-            // Remove old data points if we exceed the maximum number of data points
-            if (chart.data.datasets[0].data.length > maxDataPoints) {
-                chart.data.datasets[0].data.shift();
-            }
+  h1 {
+    margin: 0;
+    font-size: 100px;
+    text-align: right;
+  }
 
-            // Update the chart labels
-            updateChartLabels(chart);
-           // chart.data.labels = [...Array(cpuData.length).keys()];
+  p {
+    margin: 5px 0;
+    font-size: 40px;
+    text-align: right;
+  }
 
-            chart.data.datasets[0].data.push(cpuUsage[0])
-            chart.data.datasets[1].data.push(cpuUsage[1])
-            chart.data.datasets[2].data.push(cpuUsage[2])
-            chart.data.datasets[3].data.push(cpuUsage[3])
+  .image-container {
+    text-align: right;
+  }
 
-
-            // Update the chart
-            chart.update();
-        }
-
-
-        setInterval(updateChart, 1000); // Update every 1 second
-    let ramData = [];
  
-
-
-
-    var cty = document.getElementById('ram-chart').getContext('2d');
-    var chart1 = new Chart(cty, {
-        type: 'line',
-        data: {
-            labels: ['ram Usage'],
-            datasets: [{
-                data: [], // Initial value of 0
-                label: 'ram usage ',
-                fill: false,
-                borderColor: 'rgb(25, 12, 152)',
-                tension: 0.1
-            }
-            ]
-        },
-        options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'RAM Usage'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                    }
-                }
-            }
-        }
-    );
-    function updateChart1Labels(chart1) {
-            const currentTime = new Date().toLocaleTimeString();
-            chart1.data.labels.push(currentTime);
-
-            if (chart1.data.labels.length > maxDataPoints) {
-                chart1.data.labels.shift();
-            }
-        }
-    async function updateChartram() {
-        // Fetch CPU and RAM usage data (you can replace this with actual data retrieval)
-        var ramUsage=[0];
-        await fetch('/ram_usage').then(
-            response=>response.json()
-        ).then(data=>{
-            ramUsage = data.ram_usage
-           
-        })
-        
-
-        // Add new data points to the arrays
-        
-        ramData.push(ramUsage);
-
-        // Remove old data points if we exceed the maximum number of data points
-        if (chart1.data.datasets[0].data.length > maxDataPoints) {
-            chart1.data.datasets[0].data.shift();
-        }
-
-        // Update the chart labels
-        updateChartLabels(chart1);
-        //chart1.data.labels = [...Array(ramData.length).keys()];
-        console.log(ramUsage)
-        chart1.data.datasets[0].data.push(ramUsage)
+</style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg "style="background-color: #e3f2fd;">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Navbar</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+          <a class="nav-link" aria-current="page" href="/">Home</a>
+          <a class="nav-link" href="#">About</a>
+          <a class="nav-link" href="#">Contact</a>
+          <a class="nav-link active" href="/usage" >cpu_usage</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+   
+<div class="  mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-xl-6">
        
+    <div class="left-section
+                 pe-3
+    ">
+      
+        <div class="chart-container">
+            <h3 class="text-center
+                       text-capitalize
+                       fw-bold
+            ">Real-time CPU Usage line Graph</h3>
+            <canvas id="cpu-chart" width="600" height="400"></canvas>
+        </div>
+   
+  </div>
+</div>
+   <div class="col-xl-6">
+    
+      <div class="right-section
+                  ps-3
+      ">
+        
+        <div class="chart-container
+                    
+        ">
+         
+            <h3 class="text-center
+                      text-capitalize
+                      fw-bold
+            ">Real-time RAM Usage line Graph</h3>
+            <canvas id="ram-chart" width="600" height="400"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div> 
+</div>
+  <script>
+
+      let cpuData = [];
+   
+      const maxDataPoints = 1000; // Number of data points to display
 
 
-        // Update the chart
-        chart1.update();
-    }
+
+      var ctx = document.getElementById('cpu-chart').getContext('2d');
+      var chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+              labels: ['CPU Usage'],
+              datasets: [{
+                  data: [], // Initial value of 0
+                  label: 'Core 1 ',
+                  fill: false,
+                  borderColor: 'rgb(25, 12, 152)',
+                  tension: 0.1
+              },{
+                  data: [], // Initial value of 0
+                  label: 'Core 2',
+                  fill: false,
+                  borderColor: 'rgb(75, 192, 192)',
+                  tension: 0.1
+              },{
+                  data: [], // Initial value of 0
+                  label: 'Core 3',
+                  fill: false,
+                  borderColor: 'rgb(55, 92, 92)',
+                  tension: 0.1
+              },{
+                  data: [], // Initial value of 0
+                  label: 'Core 4',
+                  fill: false,
+                  borderColor: 'rgb(123, 2, 12)',
+                  tension: 0.1
+              },{
+              data: [], // Initial value of 0
+                  label: 'Core 5 ',
+                  fill: false,
+                  borderColor: 'rgb(26, 12, 152)',
+                  tension: 0.1
+              },{
+                  data: [], // Initial value of 0
+                  label: 'Core 6',
+                  fill: false,
+                  borderColor: 'rgb(76, 192, 192)',
+                  tension: 0.1
+              },{
+                  data: [], // Initial value of 0
+                  label: 'Core 7',
+                  fill: false,
+                  borderColor: 'rgb(56, 92, 92)',
+                  tension: 0.1
+              },{
+                  data: [], // Initial value of 0
+                  label: 'Core 8',
+                  fill: false,
+                  borderColor: 'rgb(124, 2, 12)',
+                  tension: 0.1
+              },{
+                data: [], // Initial value of 0
+                  label: 'Core 9 ',
+                  fill: false,
+                  borderColor: 'rgb(25, 13, 152)',
+                  tension: 0.1
+              },{
+                  data: [], // Initial value of 0
+                  label: 'Core 10',
+                  fill: false,
+                  borderColor: 'rgb(75, 193, 192)',
+                  tension: 0.1
+              },{
+                  data: [], // Initial value of 0
+                  label: 'Core 11',
+                  fill: false,
+                  borderColor: 'rgb(55, 94, 92)',
+                  tension: 0.1
+              },{
+                  data: [], // Initial value of 0
+                  label: 'Core 12',
+                  fill: false,
+                  borderColor: 'rgb(123, 9, 12)',
+                  tension: 0.1
+              }]
+          },
+          options: {
+              responsive: true,
+              scales: {
+                  x: {
+                      title: {
+                          display: true,
+                          text: 'CPU Usage'
+                      }
+                  },
+                  y: {
+                      beginAtZero: true,
+                      max: 100,
+                  }
+              }
+          }
+      }
+      );
+      function updateChartLabels(chart) {
+          const currentTime = new Date().toLocaleTimeString();
+          chart.data.labels.push(currentTime);
+
+          if (chart.data.labels.length > maxDataPoints) {
+              chart.data.labels.shift();
+          }
+      }
+      async function updateChart(cpuUsage) {
+          // Fetch CPU and RAM usage data (you can replace this with actual data retrieval)
+          
+        
+          
+
+          // Add new data points to the arrays
+          cpuData.push(cpuUsage[0]);
+
+          // Remove old data points if we exceed the maximum number of data points
+          if (chart.data.datasets[0].data.length > maxDataPoints) {
+              chart.data.datasets[0].data.shift();
+          }
+
+          // Update the chart labels
+          updateChartLabels(chart);
+         // chart.data.labels = [...Array(cpuData.length).keys()];
+
+          chart.data.datasets[0].data.push(cpuUsage[0])
+          chart.data.datasets[1].data.push(cpuUsage[1])
+          chart.data.datasets[2].data.push(cpuUsage[2])
+          chart.data.datasets[3].data.push(cpuUsage[3])
+          chart.data.datasets[4].data.push(cpuUsage[4])
+          chart.data.datasets[5].data.push(cpuUsage[5])
+          chart.data.datasets[6].data.push(cpuUsage[6])
+          chart.data.datasets[7].data.push(cpuUsage[7])
+          chart.data.datasets[8].data.push(cpuUsage[8])
+          chart.data.datasets[9].data.push(cpuUsage[9])
+          chart.data.datasets[10].data.push(cpuUsage[10])
+          chart.data.datasets[11].data.push(cpuUsage[11])
+
+          // Update the chart
+          chart.update();
+      }
 
 
-    setInterval(updateChartram, 1000); // Update every 1 second
+      // setInterval(updateChart, 1000); // Update every 1 second
+  let ramData = [];
+
+
+
+
+  var cty = document.getElementById('ram-chart').getContext('2d');
+  var chart1 = new Chart(cty, {
+      type: 'line',
+      data: {
+          labels: ['ram Usage'],
+          datasets: [{
+              data: [], // Initial value of 0
+              label: 'ram usage ',
+              fill: false,
+              borderColor: 'rgb(25, 12, 152)',
+              tension: 0.1
+          }
+          ]
+      },
+      options: {
+              responsive: true,
+              scales: {
+                  x: {
+                      title: {
+                          display: true,
+                          text: 'RAM Usage'
+                      }
+                  },
+                  y: {
+                      beginAtZero: true,
+                      max: 100,
+                  }
+              }
+          }
+      }
+  );
+  function updateChart1Labels(chart1) {
+          const currentTime = new Date().toLocaleTimeString();
+          chart1.data.labels.push(currentTime);
+
+          if (chart1.data.labels.length > maxDataPoints) {
+              chart1.data.labels.shift();
+          }
+      }
+  async function updateChartram(ramUsage) {
+      // Fetch CPU and RAM usage data (you can replace this with actual data retrieval)
+      
+
+      
+      
+
+      // Add new data points to the arrays
+      
+      // ramData.push(ramUsage);
+
+      // Remove old data points if we exceed the maximum number of data points
+      if (chart1.data.datasets[0].data.length > maxDataPoints) {
+          chart1.data.datasets[0].data.shift();
+      }
+
+      // Update the chart labels
+      updateChartLabels(chart1);
+      //chart1.data.labels = [...Array(ramData.length).keys()];
+     
+      chart1.data.datasets[0].data.push(ramUsage)
+     
+
+
+      // Update the chart
+      chart1.update();
+  }
+
+
+  const socket = io('ws://' + document.domain + ':' + location.port);
+
+      socket.on('usage_data', function(data) {
+        console.log(data)
+          updateChartram(data.ram_usage)
+          updateChart(data.cpu_usage)
+      });
+
+      setInterval(() => {
+      socket.emit("get_usage_data")
+
+      // console.log(hello)
+      }, 1000); // Update every 1 second
+
+
+ 
 </script>
 </body>
 
