@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title center>Student Records</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Include DataTables CSS -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css"
+    />
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <!-- Include DataTables JS -->
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg "style="background-color: #e3f2fd;">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+            <a class="nav-link active" aria-current="page" href="/">Home</a>
+            <a class="nav-link" href="#">About</a>
+            <a class="nav-link" href="#">Contact</a>
+           
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="container-fluid">
+      <h1 style="text-align: center;">Student Record-DataTable</h1>
+      <table id="studentTable" class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Gender</th>
+            <th>Part Time Job</th>
+            <th>Absence Days</th>
+            <th>Weekly Self Study Hours</th>
+            <th>Career Aspiration</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <!-- Update Student Form -->
+      <div id="updateStudentModal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Update Student</h5>
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="updateStudentForm">
+
+
+                <!-- Add form fields for updating student details -->
+                <input type="hidden" id="updateStudentId" name="id" />
+                <div class="form-group">
+                  <label for="updateFirstName">First Name:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updateFirstName"
+                    name="first_name"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="updateLastName">Last Name:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updateLastName"
+                    name="last_name"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="updateEmail">Email:</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="updateEmail"
+                    name="email"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="updateGender">Gender:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updateGender"
+                    name="gender"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="updatePartTimeJob">Part Time Job:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updatePartTimeJob"
+                    name="part_time_job"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="updateAbsenceDays">Absence Days:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updateAbsenceDays"
+                    name="absence_days"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="updateWeeklySelfStudyHours"
+                    >Weekly Self Study Hours:</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updateWeeklySelfStudyHours"
+                    name="weekly_self_study_hours"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="updateCareerAspiration">Career Aspiration:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updateCareerAspiration"
+                    name="career_aspiration"
+                  />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var updateStudentId; // To store the ID of the student being updated
+      $(document).ready(function () {
+        var dataTable = $("#studentTable").DataTable({
+          processing: true,
+          serverSide: true,
+          ajax: {
+            url: "/students",
+            dataSrc: "data",
+            data: function (d) {
+              // Include additional parameters for filtering
+              d.search.value = $("#searchInput").val(); // Get the value from a search input field
+            },
+          },
+          columns: [
+            { data: "id" },
+            { data: "first_name" },
+            { data: "last_name" },
+            { data: "email" },
+            { data: "gender" },
+            { data: "part_time_job" },
+            { data: "absence_days" },
+            { data: "weekly_self_study_hours" },
+            { data: "career_aspiration" },
+            {
+              data: null,
+              render: function (data, type, row) {
+                return (
+                  '<button onclick="deleteStudent(' +
+                  row.id +
+                  ')">Delete</button>' +
+                  '<button onclick="openUpdateModal(' +
+                  row.id +
+                  ')">Update</button>'
+                );
+              },
+            },
+          ],
+        });
+
+        // Display alert when DataTable is ready
+        dataTable.on("draw", function () {
+          console.log("DataTable is ready!");
+        });
+
+        $("#updateStudentForm").submit(function (e) {
+          e.preventDefault();
+          updateStudent();
+        });
+      });
+
+      function openUpdateModal(id) {
+        $.ajax({
+          url: "/student/" + id,
+          type: "GET",
+          success: function (response) {
+            updateStudentId = id;
+            $("#updateStudentId").val(response.id);
+            $("#updateFirstName").val(response.first_name);
+            $("#updateLastName").val(response.last_name);
+            $("#updateEmail").val(response.email);
+            $("#updateGender").val(response.gender);
+            $("#updatePartTimeJob").val(response.part_time_job);
+            $("#updateAbsenceDays").val(response.absence_days);
+            $("#updateWeeklySelfStudyHours").val(
+              response.weekly_self_study_hours
+            );
+            $("#updateCareerAspiration").val(response.career_aspiration);
+
+            // Open the update modal
+            $("#updateStudentModal").modal("show");
+          },
+          error: function (error) {
+            alert("Error fetching student details.");
+          },
+        });
+      }
+
+      function updateStudent() {
+        // Collect data from the form
+        var formData = $("#updateStudentForm").serialize();
+
+        // Send update request
+        $.ajax({
+          url: "/student/update/" + updateStudentId,
+          type: "PUT",
+          data: formData,
+          success: function (response) {
+            alert(res  ponse.message);
+            // Reload the DataTable after update
+            $("#studentTable").DataTable().ajax.reload();
+            // Close the update modal
+            $("#updateStudentModal").modal("hide");
+          },
+          error: function (error) {
+            alert("Error updating student.");
+          },
+        });
+      }
+
+      function deleteStudent(id) {
+        $.ajax({
+          url: "/student/delete/" + id,
+          type: "DELETE",
+          success: function (response) {
+            alert(response.message);
+            // Reload the DataTable after delete
+            $("#studentTable").DataTable().ajax.reload();
+          },
+          error: function (error) {
+            alert("Error deleting student.");
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
